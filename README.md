@@ -11,7 +11,7 @@ This article describes how to create an encrypted disk volume during cluster dep
 > 
 > Software encrypted drives are not officially supported by Red Hat LVM Storage yet. In this blog we present the current method to use an encrypted device in LVM storage. Future upgrades might introduce new methodology to support this procedure. 
 
-# Concepts and components
+## Concepts and components
 
 The following are important concepts and components involved in block device encryption.
 
@@ -37,13 +37,13 @@ Mounting an encrypted volume requires decrypting it first, using a passphrase. A
 
 There are different ways to use LUKS  in conjunction with Linux Volume Manager (LVM). In this article we will focus on the use of LVM on LUKS, by creating Logical Volumes on top of an unlocked LUKS container. A subsystem called dm-crypt is used in LUKS to map encrypted devices as virtual block devices in the kernel. Once a LUKS volume is decrypted it is shown in the Kernel as a block device and can be used by LVM.
 
-More information about block device encryption using LUKS in RHEL can be found in the official RHEL documentation.
+More information about block device encryption using LUKS in RHEL can be found in the [official RHEL documentation](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/security_hardening/encrypting-block-devices-using-luks_security-hardening#luks-disk-encryption_encrypting-block-devices-using-luks).
 
 * **Policy Based Decryption (PBD)**
 
 Policy-Based Decryption is a collection of technologies to unlock hard drives on physical and virtual machines. Mounting volumes on an encrypted device requires decrypting it first. This process is done automatically in RHCOS at boot time. As mentioned before TPM2 is used to store the encryption key. 
 
-For decryption a pluggable framework called Clevis is used. Clevis handles decryption of LUKS volumes by using the key stored in the TPM2 device. Clevis also supports the use of other technologies for unlocking volumes, such as tang or sss. More information about policy-based decryption can be found in the official RHEL documentation.
+For decryption a pluggable framework called Clevis is used. Clevis handles decryption of LUKS volumes by using the key stored in the TPM2 device. Clevis also supports the use of other technologies for unlocking volumes, such as tang or sss. More information about policy-based decryption can be found in the [official RHEL documentation](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening).
  
 * **LVM Storage**
 
@@ -55,7 +55,7 @@ LVM Storage Operator uses Linux Volume Manager (LVM) to create Volume Groups and
 
 ![Diagram](images/diagram.png)
 
-# Encryption at the edge
+## Encryption at the edge
 
 In this article we will focus on Single Node OpenShift clusters at the edge, where the environment lacks security and the network is untrusted (this setup can be applied in other OpenShift configurations as well). Our cluster is running vDU workloads of a 5G RAN infrastructure on top of an HPC ProLiant DL110 server, with TPM2 chip, OpenShift version 4.13.0 and LVM Storage Operator 4.13.0.
 
@@ -63,11 +63,11 @@ Storing data in an encrypted device is a common regulation for Telco infrastruct
 
 If a whole server is stolen an attacker can decrypt the disk using TPM. For that case the described solution alone is not enough, but can be used in conjunction with other techniques such as PCR, which is out of scope for this article.
 
-# Cluster configuration
+## Cluster configuration
 
 1. **Encrypted partition configuration**
 
-An encrypted partition can be configured at install time by adding the following MachineConfig to the manifest files that create additional configurations before creating the iso image that will be used to install the SNO cluster. More information about manifest configuration files can be found in the official OpenShift documentation.
+An encrypted partition can be configured at install time by adding the following MachineConfig to the manifest files that create additional configurations before creating the iso image that will be used to install the SNO cluster. More information about manifest configuration files can be found in the [official OpenShift documentation](https://docs.openshift.com/container-platform/4.13/installing/installing_bare_metal_ipi/ipi-install-installation-workflow.html#ipi-install-manifest-configuration-files).
 
 ```yaml
 apiVersion: machineconfiguration.openshift.io/v1
@@ -146,7 +146,7 @@ NAME                   DISPLAY      VERSION  REPLACES  PHASE
 lvms-operator.v4.13.0  LVM Storage  4.13.0             Succeeded
 ```
 
-More info about LVM Storage on single-node OpenShift clusters can be found in the official OpenShift documentation.
+More info about LVM Storage on single-node OpenShift clusters can be found in the [official OpenShift documentation](https://docs.openshift.com/container-platform/4.13/storage/persistent_storage/persistent_storage_local/persistent-storage-using-lvms.html).
 
 3. **LVM Storage custom resources**
 
@@ -169,7 +169,7 @@ nvme0n1
   `-application                                                    	 
 ```
 
-The *nvme0n1p5* device is the previously configured LUKS encrypted partition and has an empty virtual block device called application handled by *dm-cryp*.
+The *nvme0n1p5* device is the previously configured LUKS encrypted partition and has an empty virtual block device called application handled by *dm-crypt*.
 
 If the disk was in use before, it might contain the metadata of a previous filesystem, which will make the next step fail. In this case wipe the content of the disk using the following command:
 
@@ -361,7 +361,7 @@ nvme0n1
     	`-vg1-7c7b8882--13d8--4439--86f2--7bc71a51715f
 ```
 
-# Conclusion
+## Conclusion
 
 Encryption is one of the most used techniques to protect application data against unwanted access. Even though the technique used to encrypt the data is not 100% secure to mitigate all the possible attacks, it is important to take care of our data and try to mitigate the possible threats as much as possible. 
 
