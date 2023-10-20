@@ -160,18 +160,7 @@ In this article, we will use the previously created encrypted LUKS partition, av
 
 Before applying the LVMCluster object check the status of the block devices by logging on to the node and using the lsblk command::
 
-```
-sh-4.4# lsblk --fs
-NAME        	FSTYPE  	LABEL  	UUID                             	MOUNTPOINT
-nvme0n1                                                                	 
-|-nvme0n1p1                                                            	 
-|-nvme0n1p2 	vfat    	EFI-SYSTEM 4C0F-3022                       	 
-|-nvme0n1p3 	ext4    	boot   	16ebb796-07e4-424f-9a6d-31ea9daec5ec /boot
-|-nvme0n1p4 	crypto_LUKS        	6bd0d5b7-67a4-44b4-87a4-e25b2a01c7c0
-| `-root    	xfs     	root   	848adc26-5520-4387-8f27-272ad133f654 /sysroot
-`-nvme0n1p5 	crypto_LUKS        	05bd09eb-4dac-47af-88d8-bf8cdbb6b13c
-  `-application                                                    	 
-```
+![lsblk1](images/lsblk1.png)
 
 The *nvme0n1p5* device is the previously configured LUKS encrypted partition and has an empty virtual block device called application handled by *dm-crypt*.
 
@@ -244,22 +233,7 @@ true                 5m
 
 Next check again the block devices to review the changes done by the operator (by logging on to the node):
 
-```
-sh-4.4# lsblk --fs
-NAME                      	FSTYPE  	LABEL  	UUID                               	MOUNTPOINT
-nvme0n1                                                                                	 
-|-nvme0n1p1                                                                            	 
-|-nvme0n1p2               	vfat    	EFI-SYSTEM 4C0F-3022                         	 
-|-nvme0n1p3               	ext4    	boot   	16ebb796-07e4-424f-9a6d-31ea9daec5ec   /boot
-|-nvme0n1p4               	crypto_LUKS        	6bd0d5b7-67a4-44b4-87a4-e25b2a01c7c0   
-| `-root                  	xfs     	root   	848adc26-5520-4387-8f27-272ad133f654   /sysroot
-`-nvme0n1p5               	crypto_LUKS        	05bd09eb-4dac-47af-88d8-bf8cdbb6b13c   
-  `-application           	LVM2_member        	W8RFWF-ofT9-8oUF-ylR1-18Cc-j0GD-rschAQ
-	|-vg1-thin--pool--1_tmeta                                                          	 
-	| `-vg1-thin--pool--1                                                              	 
-	`-vg1-thin--pool--1_tdata                                                          	 
-  	`-vg1-thin--pool--1
-```
+![lsblk2](images/lsblk2.png)
 
 The LUKS container now has a new entry of type LVM2_member, this is the Volume Group created by the operator. 
 
@@ -364,6 +338,7 @@ nvme0n1
     	|-vg1-thin--pool--1                                                                                     	 
     	`-vg1-7c7b8882--13d8--4439--86f2--7bc71a51715f
 ```
+![lsblk3](images/lsblk3.jpg)
 
 ## Conclusion
 
