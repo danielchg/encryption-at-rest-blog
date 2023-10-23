@@ -5,12 +5,11 @@ Worried about the security of your application data at the edge? Encryption at r
 
 Edge environments are usually located at sites with untrusted networks and lesser physical security than traditional data centers. This puts the security of the application's data running on them at risk. Data destruction, corruption or even the leak of confidential information to malicious actors is possible. To reduce that risk it is recommended to encrypt every disk storing sensitive data, like the one where the application's persistent data is stored.
 
-This article describes how to create an encrypted disk volume during a Single Node OpenShift deployment (a SNO has just one node, where the roles of control plane and worker reside in the same machine) and use LVM (Linux Volume Manager) Storage operator to create a volume group and provision PVCs (Persistent Volume Claims) for your application’s data.
-
+This article describes how to create an encrypted disk volume during a Single Node OpenShift deployment (a SNO deployment has just one node, where the roles of control plane and worker reside in the same machine) and use LVM (Logical Volume Manager) Storage Operator to create a volume group and provision PVCs (Persistent Volume Claims) for your applications data.
 
 > **Warning**
 > 
-> Software encrypted drives are not officially supported by Red Hat LVM Storage yet. In this blog we present the current method to use an encrypted device in LVM storage. Future upgrades might introduce new methodology to support this procedure. 
+> Software encrypted drives are not officially supported by Red Hat LVM Storage yet. In this article we present the current method to use an encrypted device in LVM storage. Future upgrades might introduce new methodology to support this procedure. 
 
 ## Concepts and components
 
@@ -32,18 +31,18 @@ The example in this article is using a TPM2 chip on a physical server. It is als
 
 * **LUKS**
 
-Linux Unified Key Setup (LUKS), is a disk encryption specification that implements a standard on-disk format to store encryption keys. It was originally intended for Linux, but is also used by different operating systems. LUKS allows performing block device encryption. LUKS2 is currently the default format in RHEL and RHCOS.. 
+Linux Unified Key Setup (LUKS), is a disk encryption specification that implements a standard on-disk format to store encryption keys. It was originally intended for Linux, but is also used by different operating systems. LUKS allows performing block device encryption. LUKS2 is currently the default format in RHEL and RHCOS.
 
 Mounting an encrypted volume requires decrypting it first using a passphrase. An automated process to decrypt a LUKS volume, using a PIN stored in a TPM2 chip, is described in the Policy Based Decryption section.
 
-There are different ways to use LUKS  in conjunction with Linux Volume Manager (LVM). In this article we will focus on the use of LVM on LUKS, by creating Logical Volumes on top of an unlocked LUKS container. A kernel subsystem called dm-crypt is used in LUKS to expose encrypted devices as virtual blocks that can be used by LVM.
+There are different ways to use LUKS  in conjunction with Logical Volume Manager (LVM). In this article we will focus on the use of LVM on LUKS, by creating Logical Volumes on top of an unlocked LUKS container. A kernel subsystem called dm-crypt is used in LUKS to expose encrypted devices as virtual blocks that can be used by LVM.
 
 More information about block device encryption using LUKS in RHEL can be found in the
 [official RHEL documentation](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/security_hardening/encrypting-block-devices-using-luks_security-hardening#luks-disk-encryption_encrypting-block-devices-using-luks).
 
 * **Policy Based Decryption (PBD)**
 
-Policy-Based Decryption is a collection of technologies to unlock hard drives on physical and virtual machines. Mounting volumes on an encrypted device requires decrypting it first. This process is done automatically in RHCOS at boot time. As mentioned before TPM2 is used to store the encryption keys of the JWE file containing the disk encryption key. 
+Policy-Based Decryption is a collection of technologies to unlock hard drives on physical and virtual machines. Mounting volumes on an encrypted device requires decrypting it first. This process is done automatically in RHCOS at boot time. As mentioned before, TPM2 is used to store the encryption keys of the JWE file containing the disk encryption key. 
 
 For decryption a pluggable framework called Clevis is used. Clevis handles decryption of LUKS volumes by using the key stored in the JWE file. Clevis also supports the use of other technologies for unlocking volumes, such as tang or sss. More information about policy-based decryption can be found in the [official RHEL documentation](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening).
  
@@ -51,11 +50,11 @@ For decryption a pluggable framework called Clevis is used. Clevis handles decry
 
 The main OpenShift storage operator offered by Red Hat is OpenShift Data Foundation (ODF), a meta operator that supports other operators such as OpenShift Container Storage (OCS) to deploy Ceph. Ceph is only supported in a cluster with at least 3 nodes. 
 
-Another available storage solution from Red Hat that can be used in a SNO is the Local Storage Operator (LSO). This operator offers local devices on the node as volumes to the pods, without the implementation of some of the advantages of Container Storage Interface (CSI) such as snapshots, volumes resizing, etc. 
+Another available storage solution from Red Hat that can be used in a SNO deployment is the Local Storage Operator (LSO). This operator offers local devices on the node as volumes to the pods, without the implementation of some of the advantages of Container Storage Interface (CSI) such as snapshots, volumes resizing, etc. 
 
-To fill those gaps and be able to use a powerful storage solution on SNO the LVM Storage operator was developed. Saying that, it is possible to use LVM Storage on a Multi Node OpenShift (MNO) deployment, but it is only useful in some specific use cases, which are not covered in this article. 
+To fill those gaps and be able to use a powerful storage solution on SNO, the LVM Storage Operator was developed. Saying that, it is possible to use LVM Storage on a Multi Node OpenShift (MNO) deployment, but it is only useful in some specific use cases, which are not covered in this article. 
 
-LVM Storage Operator uses Linux Volume Manager (LVM) to create Volume Groups and Logical Volumes, which are exposed as Persistent Volumes on the pods. LVM Storage Operator eases the management of persistent volumes by leveraging CSI features.
+LVM Storage Operator uses Logical Volume Manager (LVM) to create Volume Groups and Logical Volumes, which are exposed as Persistent Volumes on the pods. LVM Storage Operator eases the management of persistent volumes by leveraging standard kubernetes CSI features.
 
 ![Diagram](images/diagram.png)
 
@@ -67,7 +66,7 @@ Storing data in an encrypted device is a common regulation for Telco infrastruct
 
 If a whole server is stolen an attacker can decrypt the disk using TPM. For that case the described solution alone is not enough, but can be used in conjunction with other techniques such as PCR, which is out of scope for this article.
 
-## Cluster configuration
+## Configuration
 
 1. **Encrypted partition configuration**
 
