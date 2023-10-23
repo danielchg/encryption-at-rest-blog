@@ -3,7 +3,7 @@ By: dchavero@redhat.com, saledort@redhat.com
 
 Worried about the security of your application data at the edge? Encryption at rest is your solution.
 
-Edge environments are usually located at sites with untrusted networks and lesser physical security than traditional data centers. This puts the security of the application's data running on them at risk. Data destruction, corruption or even the leak of confidential information to malicious actors is possible. To reduce that risk it is recommended to encrypt every disk storing sensitive data , like one where the application's persistent data is stored.
+Edge environments are usually located at sites with untrusted networks and lesser physical security than traditional data centers. This puts the security of the application's data running on them at risk. Data destruction, corruption or even the leak of confidential information to malicious actors is possible. To reduce that risk it is recommended to encrypt every disk storing sensitive data, like the one where the application's persistent data is stored.
 
 This article describes how to create an encrypted disk volume during a Single Node OpenShift deployment (a SNO has just one node, where the roles of control plane and worker reside in the same machine) and use LVM (Linux Volume Manager) Storage operator to create a volume group and provision PVCs (Persistent Volume Claims) for your application’s data.
 
@@ -18,7 +18,7 @@ The following are important concepts and components involved in block device enc
 
 * **Encryption at rest**
 
-When talking about data at rest, we refer to data stored in a hard drive, not data in transit that is being accessed through the network or by an application. In this context, the data we would like to protect is the data stored in OpenShift Persistent Volumes, which is not transferred over the network or loaded in memory. Having this data encrypted provides protection, if an attacker removes the hard drive from the server and tries to access the data, it won’t be possible without the encryption key. Another advantage of encryption at rest is the fact that a user doesn’t have to do anything to ensure that the data is encrypted, the platform provides an encryption layer that is transparent to the application.
+When talking about data at rest, we refer to data stored in a hard drive, the data we would like to protect is the data stored in OpenShift Persistent Volumes, which is not transferred over the network or loaded in memory. Having this data encrypted provides protection, if an attacker removes the hard drive from the server and tries to access the data, it won’t be possible without the encryption key. Another advantage of encryption at rest is the fact that a user doesn’t have to do anything to ensure that the data is encrypted, the platform provides an encryption layer that is transparent to the application.
 
 * **TPM**
 
@@ -32,9 +32,9 @@ The example in this article is using a TPM2 chip on a physical server. It is als
 
 * **LUKS**
 
-Linux Unified Key Setup (LUKS), is a disk encryption specification that implements a standard on-disk format to store encryption keys. It was originally intended for Linux, but is also used by different operating systems. LUKS allow to perform block device encryption. LUKS2 is currently the default format in RHEL and RHCOS.. 
+Linux Unified Key Setup (LUKS), is a disk encryption specification that implements a standard on-disk format to store encryption keys. It was originally intended for Linux, but is also used by different operating systems. LUKS allows performing block device encryption. LUKS2 is currently the default format in RHEL and RHCOS.. 
 
-Mounting an encrypted volume requires decrypting it first, using a passphrase. An automated process to decrypt a LUKS volume, using a PIN stored in a TPM2 chip, is described in the Policy Based Decryption section.
+Mounting an encrypted volume requires decrypting it first using a passphrase. An automated process to decrypt a LUKS volume, using a PIN stored in a TPM2 chip, is described in the Policy Based Decryption section.
 
 There are different ways to use LUKS  in conjunction with Linux Volume Manager (LVM). In this article we will focus on the use of LVM on LUKS, by creating Logical Volumes on top of an unlocked LUKS container. A kernel subsystem called dm-crypt is used in LUKS to expose encrypted devices as virtual blocks that can be used by LVM.
 
@@ -61,9 +61,9 @@ LVM Storage Operator uses Linux Volume Manager (LVM) to create Volume Groups and
 
 ## Encryption at the edge
 
-In this article we focus on SNO at the edge but this particular configuration can also be employed in various other Openshift setups. Our demo SNO is running vDU workloads of a 5G RAN infrastructure on top of an HPC ProLiant DL110 server, with TPM2 chip, OpenShift version 4.13.0 and LVM Storage Operator 4.13.0.
+In this article we focus on SNO at the edge but this particular configuration can also be applied in various other Openshift setups. Our demo SNO is running vDU workloads of a 5G RAN infrastructure on top of an HPC ProLiant DL110 server, with TPM2 chip, OpenShift version 4.13.0 and LVM Storage Operator 4.13.0.
 
-Storing data in an encrypted device is a common regulation for Telco infrastructures. There are multiple techniques and solutions to encrypt data in a disk, the technique described in this article is not the silver bullet to mitigate all the threats on our data, but adds protection against some specific threats. For instance, if the disks are replaced by a spare, the regulation may require the supplier to destroy that device to avoid data leaks. In this case the fact that the disk is encrypted helps, once the disk is separated from the server, there is no access to the data as the disk encryption key is still in a JWE file encrypted by keys stored in the TPM chip. Having an encrypted disk can also be effective in other physical attacks such as disk theft, as it is easier to steal a single disk than the whole server with TPM. While in this blog we are using TPM, there are other mechanisms to store the PIN outside the server like tang or sss that are mentioned earlier. Another possibility for enhancing the security of the keys is the use of PCRs with TPM.
+Storing data in an encrypted device is a common regulation for Telco infrastructures. There are multiple techniques and solutions to encrypt data in a disk, the technique described in this article is not the silver bullet to mitigate all the threats on our data, but adds protection against some specific threats. For instance, if a disk is replaced by a spare, the regulation may require the supplier to destroy that device to avoid data leaks. In this case the fact that the disk is encrypted helps, once the disk is separated from the server, there is no access to the data as the disk encryption key is still in a JWE file encrypted by keys stored in the TPM chip. Having an encrypted disk can also be effective in other physical attacks such as disk theft, as it is easier to steal a single disk than the whole server with TPM. While in this article we are using TPM, there are other mechanisms to store the PIN outside the server like tang or sss that are mentioned earlier. Another possibility for enhancing the security of the keys is the use of PCRs with TPM.
 
 If a whole server is stolen an attacker can decrypt the disk using TPM. For that case the described solution alone is not enough, but can be used in conjunction with other techniques such as PCR, which is out of scope for this article.
 
@@ -71,7 +71,7 @@ If a whole server is stolen an attacker can decrypt the disk using TPM. For that
 
 1. **Encrypted partition configuration**
 
-An encrypted partition can be configured at install time by adding the following MachineConfig to the manifest files that create additional configurations before creating the iso image that will be used to install the SNO. More information about manifest configuration files can be found in the [official OpenShift documentation](https://docs.openshift.com/container-platform/4.13/installing/installing_bare_metal_ipi/ipi-install-installation-workflow.html#ipi-install-manifest-configuration-files).
+An encrypted partition can be configured at install time by adding the following MachineConfig to the manifest files that create additional configurations. These manifest files are part of the iso image that will be used to install the SNO. More information about manifest configuration files can be found in the [official OpenShift documentation](https://docs.openshift.com/container-platform/4.13/installing/installing_bare_metal_ipi/ipi-install-installation-workflow.html#ipi-install-manifest-configuration-files).
 
 ```yaml
 apiVersion: machineconfiguration.openshift.io/v1
@@ -106,7 +106,7 @@ spec:
 
 2. **LVM Storage installation**
 
-You can install LVM Storage Operator on a SNO 4.13 by using the Operator Lifecycle Manager (OLM). This can be done by using the OpenShift Container Platform web console or the OpenShift command-line interface (CLI) by applying the following resources:
+You can install LVM Storage Operator on a 4.13 SNO by applying the following resources using the Operator Lifecycle Manager (OLM) in the OpenShift Container Platform web console or the OpenShift command-line interface (CLI):
 
 ```yaml
 $ cat << EOF | oc apply -f -
@@ -156,18 +156,34 @@ More info about LVM Storage on single-node OpenShift clusters can be found in th
 
 The LVMCluster CR represents the volume groups that should be created and managed on selected devices (if no paths are specified, all available disks will be used). Through LVMCluster CR the LVM Operator can ensure the required volume groups are available for use by the applications running on OpenShift.
 
-In this article, we will use the previously created encrypted LUKS partition, available in */dev/mapper/application*.
+In this article, we will use the previously created encrypted LUKS partition, available in /dev/mapper/application.
 
-Before applying the LVMCluster object check the status of the block devices by logging on to the node and using the lsblk command::
+Before applying the LVMCluster object check the status of the block devices by logging on to the node and using the lsblk command:
 
-![lsblk1](images/lsblk1.png)
+```bash
+sh-4.4# lsblk --fs
+NAME        	FSTYPE  	LABEL  	UUID                             	MOUNTPOINT
+nvme0n1                                                                	 
+|-nvme0n1p1                                                            	 
+|-nvme0n1p2 	vfat    	EFI-SYSTEM 4C0F-3022                       	 
+|-nvme0n1p3 	ext4    	boot   	16ebb796-07e4-424f-9a6d-31ea9daec5ec /boot
+|-nvme0n1p4 	crypto_LUKS        	6bd0d5b7-67a4-44b4-87a4-e25b2a01c7c0
+| `-root    	xfs     	root   	848adc26-5520-4387-8f27-272ad133f654 /sysroot
+`-nvme0n1p5 	crypto_LUKS        	05bd09eb-4dac-47af-88d8-bf8cdbb6b13c
+  `-application
+```
 
 The *nvme0n1p5* device is the previously configured LUKS encrypted partition and has an empty virtual block device called application handled by *dm-crypt*.
+
+> **Note**
+> 
+> The root partition encryption was done during OpenShift installation. More info about boot disk encryption at install time can be found in the [official OpenShift documentation](https://docs.openshift.com/container-platform/4.13/installing/install_config/installing-customizing.html#installation-special-config-encrypt-disk_installing-customizing).
+
 
 If the disk was in use before, it might contain the metadata of a previous filesystem, which will make the next step fail. In this case wipe the content of the disk using the following command:
 
 ```bash
-sgdisk --zap-all /dev/mapper/applications
+sgdisk --zap-all /dev/mapper/application
 ```
 
 Apply the following to configure the LVMCluster object:
@@ -212,7 +228,7 @@ $ oc -n openshift-storage get lvmclusters.lvm.topolvm.io -o jsonpath='{.items[*]
 }
 ```
 
-Check the pods running on the openshift-storage namespace:
+Check the pods running on the *openshift-storage* namespace:
 
 ```bash
 $ oc -n openshift-storage get pods
@@ -233,7 +249,22 @@ true                 5m
 
 Next check again the block devices to review the changes done by the operator (by logging on to the node):
 
-![lsblk2](images/lsblk2.png)
+```bash
+sh-4.4# lsblk --fs
+NAME                      	FSTYPE  	LABEL  	UUID                               	MOUNTPOINT
+nvme0n1                                                                                	 
+|-nvme0n1p1                                                                            	 
+|-nvme0n1p2               	vfat    	EFI-SYSTEM 4C0F-3022                         	 
+|-nvme0n1p3               	ext4    	boot   	16ebb796-07e4-424f-9a6d-31ea9daec5ec   /boot
+|-nvme0n1p4               	crypto_LUKS        	6bd0d5b7-67a4-44b4-87a4-e25b2a01c7c0   
+| `-root                  	xfs     	root   	848adc26-5520-4387-8f27-272ad133f654   /sysroot
+`-nvme0n1p5               	crypto_LUKS        	05bd09eb-4dac-47af-88d8-bf8cdbb6b13c   
+  `-application           	LVM2_member        	W8RFWF-ofT9-8oUF-ylR1-18Cc-j0GD-rschAQ
+	|-vg1-thin--pool--1_tmeta                                                          	 
+	| `-vg1-thin--pool--1                                                              	 
+	`-vg1-thin--pool--1_tdata                                                          	 
+  	`-vg1-thin--pool--1
+```
 
 The LUKS container now has a new entry of type LVM2_member, this is the Volume Group created by the operator. 
 
@@ -338,7 +369,6 @@ nvme0n1
     	|-vg1-thin--pool--1                                                                                     	 
     	`-vg1-7c7b8882--13d8--4439--86f2--7bc71a51715f
 ```
-![lsblk3](images/lsblk3.jpg)
 
 ## Conclusion
 
